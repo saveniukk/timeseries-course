@@ -36,9 +36,15 @@ def bayesian_criterion(y, y_fit, degree):
     return n * np.log(np.sum((y - y_fit) ** 2) / n) + (degree + 1) * np.log(n)
 
 
-def compare_degrees(x, y, max_degree):
+def condition_number(x, degree):
+    design = build_design_matrix(x, degree)
+    return np.linalg.cond(design.T @ design)
+
+
+def compare_degrees(x, y, max_condition):
     rows = []
-    for degree in range(1, max_degree + 1):
+    degree = 1
+    while condition_number(x, degree) <= max_condition:
         y_fit = evaluate_polynomial(x, fit_polynomial_lsm(x, y, degree))
         rows.append({
             "degree": degree,
@@ -46,7 +52,9 @@ def compare_degrees(x, y, max_degree):
             "adjusted_r2": adjusted_r_squared(y, y_fit, degree),
             "bic": bayesian_criterion(y, y_fit, degree),
             "sigma": np.std(y - y_fit, ddof=degree + 1),
+            "condition": condition_number(x, degree),
         })
+        degree += 1
     return rows
 
 

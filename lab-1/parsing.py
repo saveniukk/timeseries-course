@@ -53,7 +53,10 @@ def parse_year_rates():
     day_links = collect_day_links(fetch_html(session, YEAR_URL))
     records = []
     for index, (date, url) in enumerate(day_links.items(), start=1):
-        records.append((date, parse_usd_rate(fetch_html(session, url))))
+        try:
+            records.append((date, parse_usd_rate(fetch_html(session, url))))
+        except ValueError as error:
+            print(f"День {date} пропущено: {error}")
         if index % 50 == 0:
             print(f"Оброблено сторінок днів: {index} з {len(day_links)}")
         time.sleep(PAUSE_BETWEEN_REQUESTS_SECONDS)

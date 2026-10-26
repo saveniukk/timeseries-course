@@ -14,7 +14,7 @@ from synthesis import generate_noise, synthesize_series
 BASE_DIR = Path(__file__).parent
 DATA_PATH = BASE_DIR / "data" / "parsed_minfin_usd_2025.csv"
 REFRESH_DATA = False
-MAX_POLYNOMIAL_DEGREE = 7
+MAX_CONDITION_NUMBER = 1e11
 SEED = 4
 SIGNIFICANCE_LEVEL = 0.05
 PRINT_PRECISION = 4
@@ -39,11 +39,11 @@ def parse_and_save_data():
 
 def estimate_trend(x, y):
     print_header("3. Динаміка тренду реальних даних")
-    rows = compare_degrees(x, y, MAX_POLYNOMIAL_DEGREE)
-    print("Степінь |      R² | Скоригований R² |       BIC | σ залишків")
+    rows = compare_degrees(x, y, MAX_CONDITION_NUMBER)
+    print("Степінь |      R² | Скоригований R² |       BIC | σ (ddof=p+1) | cond(FᵀF)")
     for row in rows:
         print(f"{row['degree']:7d} | {format_number(row['r2'])} | {format_number(row['adjusted_r2']):>15} | "
-              f"{format_number(row['bic']):>9} | {format_number(row['sigma'])}")
+              f"{format_number(row['bic']):>9} | {format_number(row['sigma']):>12} | {row['condition']:.3e}")
     degree = select_degree_by_bic(rows)
     coefficients = fit_polynomial_lsm(x, y, degree)
     trend = evaluate_polynomial(x, coefficients)
